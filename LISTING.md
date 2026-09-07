@@ -4,7 +4,7 @@ Everything to paste when publishing. Listing is web only, there is no CLI for it
 
 ## Before you list
 
-Done. Live at **https://sift-w88cf02b6y0b.astra.deno.net** on Deno Deploy's free tier, and
+Done. Live at **https://sift.astra.deno.net** on Deno Deploy's free tier, and
 `openapi.yaml` already points at it.
 
 Verified from outside on 2026-09-07: `/v1/health` returns ok, and a real PDF parses correctly
