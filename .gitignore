@@ -1,0 +1,7 @@
+node_modules/
+dist/
+.env
+.env.*
+eval/corpus/
+eval/out/
+*.log
