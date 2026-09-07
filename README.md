@@ -106,6 +106,11 @@ npx wrangler dev  # cloudflare workers, verified at 15-36ms per parse
 pnpm dev          # node, verified at 45ms per parse
 ```
 
+Deploying is free. `deno deploy` needs a real terminal for its browser login, so run it
+yourself rather than through a tool.
+
+Listing copy, pricing and the publishing steps for RapidAPI are in [LISTING.md](LISTING.md).
+
 Confirm Deno Deploy's current free limits at signup. They retired the old plan in July 2026
 and the numbers above are from the replacement.
 
