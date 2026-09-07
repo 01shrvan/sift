@@ -53,6 +53,7 @@ app.get("/", (c) => {
 });
 
 app.get("/v1/health", (c) => c.json({ status: "ok" }));
+app.get("/ping", (c) => c.json({ status: "ok" }));
 
 app.post("/v1/parse", async (c) => {
   const started = performance.now();

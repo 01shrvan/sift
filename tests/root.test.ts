@@ -25,6 +25,12 @@ describe("root route", () => {
     expect(html).toContain("curl -X POST http://localhost:8787/v1/parse");
   });
 
+  it("answers the default health check path", async () => {
+    const res = await app.request("/ping");
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ status: "ok" });
+  });
+
   it("still 404s an unknown path", async () => {
     const res = await app.request("/nope");
     expect(res.status).toBe(404);
