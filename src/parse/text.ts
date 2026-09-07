@@ -23,7 +23,7 @@ export function normaliseLetterSpacing(line: string): string {
 export function toLines(text: string): string[] {
   return text
     .split(/\r?\n/)
-    .map((l) => normaliseLetterSpacing(l.replace(/ /g, " ").replace(/[ \t]+/g, " ").trim()))
+    .map((l) => normaliseLetterSpacing(l.replace(/ /g, " ").replace(/ {2,}/g, " ").trim()))
     .filter((l) => l.length > 0);
 }
 
@@ -33,4 +33,9 @@ export function stripBullet(line: string): string {
 
 export function isBullet(line: string): boolean {
   return /^[•‣▪●◦⁃∙*\-–—]\s+/.test(line);
+}
+
+export function bulletGlyph(line: string): string | null {
+  const match = line.match(/^([•‣▪●◦⁃∙*\-–—])\s+/);
+  return match === null ? null : match[1]!;
 }

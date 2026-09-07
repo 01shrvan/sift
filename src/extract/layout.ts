@@ -9,7 +9,9 @@ const LINE_TOLERANCE = 3;
 const MIN_COLUMN_SHARE = 0.15;
 const MAX_STRADDLE_SHARE = 0.02;
 
-function groupIntoLines(items: Item[]): string[] {
+const WIDE_GAP_SHARE = 0.025;
+
+function groupIntoLines(items: Item[], pageWidth: number): string[] {
   if (items.length === 0) return [];
   const sorted = [...items].sort((a, b) => (b.y - a.y) || (a.x - b.x));
   const lines: Item[][] = [];
@@ -25,16 +27,21 @@ function groupIntoLines(items: Item[]): string[] {
     }
   }
   lines.push(current);
+  const wideGap = pageWidth > 0 ? pageWidth * WIDE_GAP_SHARE : Infinity;
   return lines.map((line) => {
     const ordered = [...line].sort((a, b) => a.x - b.x);
     let text = "";
     let prevEnd: number | null = null;
     for (const item of ordered) {
-      if (prevEnd !== null && item.x - prevEnd > 1 && !text.endsWith(" ")) text += " ";
+      if (prevEnd !== null) {
+        const gap = item.x - prevEnd;
+        if (gap > wideGap) text += "\t";
+        else if (gap > 1 && !text.endsWith(" ")) text += " ";
+      }
       text += item.str;
       prevEnd = item.x + item.width;
     }
-    return text.replace(/\s+/g, " ").trim();
+    return text.replace(/[ ]{2,}/g, " ").replace(/\t+/g, "\t").trim();
   });
 }
 
@@ -67,8 +74,8 @@ export function reconstruct(items: Item[], pageWidth: number): string {
   const usable = items.filter((i) => i.str.trim().length > 0);
   if (usable.length === 0) return "";
   const split = findColumnSplit(usable, pageWidth);
-  if (split === null) return groupIntoLines(usable).join("\n");
+  if (split === null) return groupIntoLines(usable, pageWidth).join("\n");
   const left = usable.filter((i) => i.x + i.width <= split);
   const right = usable.filter((i) => i.x + i.width > split);
-  return [...groupIntoLines(left), ...groupIntoLines(right)].join("\n");
+  return [...groupIntoLines(left, pageWidth), ...groupIntoLines(right, pageWidth)].join("\n");
 }

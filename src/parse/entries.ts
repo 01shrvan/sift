@@ -1,8 +1,33 @@
 import type { Education, Project, Skill, Work } from "../schema.js";
 import { findDateRange, hasDateRange, stripDateRange } from "./dates.js";
-import { isBullet, stripBullet } from "./text.js";
+import { bulletGlyph, isBullet, stripBullet } from "./text.js";
 
-const SPLIT = /\s*(?:—|–|\||·|•|,|\s+at\s+|\s+@\s+)\s*|\s+-\s+/;
+const SPLIT = /\s*(?:\t|—|–|\||·|•|,|\s+at\s+|\s+@\s+)\s*|\s+-\s+/;
+
+export function entryBulletTest(lines: string[]): (line: string) => boolean {
+  const glyphs = new Map<string, { total: number; dated: number; first: number }>();
+  lines.forEach((line, index) => {
+    const glyph = bulletGlyph(line);
+    if (glyph === null) return;
+    const entry = glyphs.get(glyph) ?? { total: 0, dated: 0, first: index };
+    entry.total += 1;
+    if (hasDateRange(line)) entry.dated += 1;
+    glyphs.set(glyph, entry);
+  });
+  if (glyphs.size < 2) {
+    const opensWithBullet = lines.length > 0 && isBullet(lines[0]!);
+    if (opensWithBullet) return (line: string) => isBullet(line);
+    return (line: string) => isBullet(line) && hasDateRange(line);
+  }
+  const ranked = [...glyphs.entries()].sort((a, b) => {
+    const rateA = a[1].dated / a[1].total;
+    const rateB = b[1].dated / b[1].total;
+    if (rateA !== rateB) return rateB - rateA;
+    return a[1].first - b[1].first;
+  });
+  const entryGlyph = ranked[0]![0];
+  return (line: string) => bulletGlyph(line) === entryGlyph;
+}
 
 const CORPORATE_SUFFIX = /^(?:inc|llc|ltd|limited|pvt|private|co|corp|corporation|gmbh|plc|llp|sa|bv|ag)\.?$/i;
 
@@ -82,14 +107,26 @@ function assignWorkTitle(entry: Work, line: string): void {
 
 export function parseWork(lines: string[]): Work[] {
   const entries: Work[] = [];
+  const startsEntry = entryBulletTest(lines);
   let current: Work | null = null;
-  for (const line of lines) {
-    if (isBullet(line)) {
+  for (const raw of lines) {
+    const line = startsEntry(raw) ? stripBullet(raw) : raw;
+    if (line !== raw && !hasDateRange(line) && current !== null && current.name === null) {
+      assignWorkTitle(current, line);
+      continue;
+    }
+    if (line === raw && isBullet(line)) {
       if (current === null) {
         current = blankWork();
         entries.push(current);
       }
       current.highlights.push(stripBullet(line));
+      continue;
+    }
+    if (line !== raw && !hasDateRange(line)) {
+      current = blankWork();
+      entries.push(current);
+      assignWorkTitle(current, line);
       continue;
     }
     if (hasDateRange(line)) {
@@ -149,12 +186,10 @@ function assignEducation(entry: Education, line: string): void {
       entry.institution = piece;
       continue;
     }
-    if (entry.score === null) {
-      const score = readScore(piece);
-      if (score !== null) {
-        entry.score = score;
-        continue;
-      }
+    const score = readScore(piece);
+    if (score !== null) {
+      if (entry.score === null) entry.score = score;
+      continue;
     }
     if (entry.institution === null) entry.institution = piece;
     else if (entry.area === null) entry.area = piece;
@@ -163,18 +198,21 @@ function assignEducation(entry: Education, line: string): void {
 
 export function parseEducation(lines: string[]): Education[] {
   const entries: Education[] = [];
+  const startsEntry = entryBulletTest(lines);
   let current: Education | null = null;
-  for (const line of lines) {
-    if (isBullet(line)) {
-      if (current !== null) current.courses.push(stripBullet(line));
+  for (const raw of lines) {
+    const isEntry = startsEntry(raw);
+    if (!isEntry && isBullet(raw)) {
+      if (current !== null) current.courses.push(stripBullet(raw));
       continue;
     }
+    const line = isEntry ? stripBullet(raw) : raw;
     const range = hasDateRange(line) ? findDateRange(line) : null;
-    const rest = range === null ? line : stripDateRange(line);
     const startsNew =
       current === null ||
+      isEntry ||
       (range !== null && current.startDate !== null) ||
-      (STUDY_TYPE.test(rest) && current.studyType !== null);
+      (STUDY_TYPE.test(line) && current.studyType !== null);
     if (startsNew) {
       current = blankEducation();
       entries.push(current);
@@ -183,11 +221,10 @@ export function parseEducation(lines: string[]): Education[] {
       current!.startDate = range.startDate;
       current!.endDate = range.endDate;
     }
-    if (current!.score === null) {
-      const score = readScore(rest);
-      if (score !== null) current!.score = score;
-    }
-    if (rest.length > 0) assignEducation(current!, rest);
+    const score = readScore(line);
+    if (score !== null && current!.score === null) current!.score = score;
+    const head = stripDateRange(line.split("\t")[0] ?? line);
+    if (head.length > 0) assignEducation(current!, head);
   }
   return entries.filter((e) => e.institution !== null || e.studyType !== null);
 }

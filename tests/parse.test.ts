@@ -45,6 +45,7 @@ describe("parseText", () => {
     expect(resume.basics.email).toBe("shrvan@example.com");
     expect(resume.basics.phone).toBe("+91 84519 74359");
     expect(resume.basics.label).toBe("Backend Engineer");
+    expect(resume.basics.location).toMatchObject({ city: "Mumbai", countryCode: "IN" });
   });
 
   it("reads the profiles", () => {
@@ -106,7 +107,8 @@ describe("parseText", () => {
   it("reports coverage honestly", () => {
     expect(resume.meta.coverage.found).toContain("work");
     expect(resume.meta.coverage.found).toContain("education");
-    expect(resume.meta.coverage.missing).toContain("basics.location.city");
+    expect(resume.meta.coverage.found).toContain("basics.location.city");
+    expect(resume.meta.coverage.missing).toEqual([]);
   });
 
   it("reports timing", () => {

@@ -3,5 +3,6 @@ dist/
 .env
 .env.*
 eval/corpus/
+eval/truth/
 eval/out/
 *.log
