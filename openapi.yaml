@@ -7,7 +7,7 @@ info:
     reports which fields could not be found instead of guessing.
   version: 0.1.0
 servers:
-  - url: https://sift.example.workers.dev
+  - url: https://sift-w88cf02b6y0b.astra.deno.net
 paths:
   /v1/health:
     get:

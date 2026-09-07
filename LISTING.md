@@ -4,10 +4,13 @@ Everything to paste when publishing. Listing is web only, there is no CLI for it
 
 ## Before you list
 
-1. `deno deploy` in your own terminal. It needs a real terminal for the browser login, so
-   run it yourself. It prints the deployed URL.
-2. Put that URL into `openapi.yaml` under `servers:`, replacing the placeholder.
-3. Check it from outside: `curl https://<your-url>/v1/health`
+Done. Live at **https://sift-w88cf02b6y0b.astra.deno.net** on Deno Deploy's free tier, and
+`openapi.yaml` already points at it.
+
+Verified from outside on 2026-09-07: `/v1/health` returns ok, and a real PDF parses correctly
+in **22.5ms** of server time. Total round trip from India is ~1.2s, almost all of it TLS and
+upload to a US free region. RapidAPI probes from their own infrastructure, so the latency they
+publish will track the 22ms, not the 1.2s.
 
 ## Name
 
