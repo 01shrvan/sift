@@ -94,4 +94,13 @@ app.post("/v1/parse", async (c) => {
   }
 });
 
-export default app;
+export const handler = {
+  fetch(request: Request): Response | Promise<Response> {
+    const url = new URL(request.url);
+    if (!/\/{2,}/.test(url.pathname)) return app.fetch(request);
+    url.pathname = url.pathname.replace(/\/{2,}/g, "/");
+    return app.fetch(new Request(url.toString(), request));
+  },
+};
+
+export default handler;
