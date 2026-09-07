@@ -1,0 +1,12 @@
+{
+  "name": "sift",
+  "exports": "./src/deno.ts",
+  "unstable": ["sloppy-imports"],
+  "tasks": {
+    "dev": "deno run --unstable-sloppy-imports --allow-net --allow-read --allow-env src/deno.ts"
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "lib": ["deno.window", "dom"]
+  }
+}

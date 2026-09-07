@@ -50,7 +50,9 @@ export function readCentralDirectory(bytes: Uint8Array): ZipEntry[] {
 async function inflateRaw(bytes: Uint8Array): Promise<Uint8Array> {
   const stream = new DecompressionStream("deflate-raw");
   const writer = stream.writable.getWriter();
-  void writer.write(bytes);
+  const input = new Uint8Array(bytes.byteLength);
+  input.set(bytes);
+  void writer.write(input);
   void writer.close();
   const chunks: Uint8Array[] = [];
   const reader = stream.readable.getReader();

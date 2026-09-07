@@ -88,9 +88,26 @@ in a repository.
 
 ## Deploying
 
-Cloudflare Workers, configured in `wrangler.toml`. A parse costs roughly 14ms of CPU, which
-sits above the free plan's 10ms per request limit, so this needs the $5/month Workers plan.
-Nothing else here costs money.
+A parse costs **8-14ms of CPU**, measured over 100 iterations per document, not estimated.
+That number decides the host.
+
+| host | free tier | verdict |
+|---|---|---|
+| **Deno Deploy** | 1M requests/month, 15 hours CPU/month | **free and sufficient.** The budget is monthly, not per request, so 14ms parses fit. 15 hours is roughly 3.8M parses; the request cap binds first |
+| Cloudflare Workers | 10ms CPU **per request** | does not fit. Two of three test resumes exceed it. Works on the $5/month plan |
+| Render | spins down when idle | 50s cold start defeats the entire pitch |
+| Vercel Hobby | generous | its terms prohibit commercial use |
+
+Both runtimes are wired up and both were run against real PDFs:
+
+```bash
+deno task dev     # deno, verified at 16-33ms per parse
+npx wrangler dev  # cloudflare workers, verified at 15-36ms per parse
+pnpm dev          # node, verified at 45ms per parse
+```
+
+Confirm Deno Deploy's current free limits at signup. They retired the old plan in July 2026
+and the numbers above are from the replacement.
 
 ## License
 
