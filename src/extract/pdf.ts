@@ -24,7 +24,7 @@ function toItem(raw: TextItem): Item | null {
 }
 
 export async function extractPdf(bytes: Uint8Array): Promise<Extracted> {
-  const pdf = await getDocumentProxy(bytes);
+  const pdf = await getDocumentProxy(bytes.slice());
   const pages: string[] = [];
   for (let n = 1; n <= pdf.numPages; n++) {
     const page = await pdf.getPage(n);
