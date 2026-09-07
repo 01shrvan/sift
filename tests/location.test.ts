@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findLocation } from "../src/parse/location.js";
+import { findAddressLocation, findLocation } from "../src/parse/location.js";
 
 describe("findLocation", () => {
   it("reads city and country", () => {
@@ -64,5 +64,31 @@ describe("findLocation", () => {
       region: null,
       countryCode: "GB",
     });
+  });
+});
+
+describe("findAddressLocation", () => {
+  it("reads the city out of a us street address", () => {
+    expect(findAddressLocation(["2002 Front Range Way Fort Collins, CO 80525"])).toEqual({
+      city: "Fort Collins",
+      region: "CO",
+      countryCode: "US",
+    });
+  });
+
+  it("drops a street suffix that leaks into the city", () => {
+    expect(findAddressLocation(["500 Market St San Francisco, CA 94102"])).toEqual({
+      city: "San Francisco",
+      region: "CA",
+      countryCode: "US",
+    });
+  });
+
+  it("ignores a two letter token that is not a state", () => {
+    expect(findAddressLocation(["12 Some Road Placeville, ZZ 12345"])).toBeNull();
+  });
+
+  it("returns null without an address", () => {
+    expect(findAddressLocation(["Shrvan Benke", "Backend Engineer"])).toBeNull();
   });
 });

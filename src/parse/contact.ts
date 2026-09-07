@@ -9,7 +9,7 @@ const TLDS = new Set([
   "pro", "site", "online", "page", "cloud", "design", "studio", "digital", "space",
 ]);
 
-const PHONE_CANDIDATE = /(?:\+?\d[\d\s().-]{7,}\d)/g;
+const PHONE_CANDIDATE = /(?:\+?\d|\()[\d\s().-]{7,}\d/g;
 
 const NETWORKS: ReadonlyArray<{ network: string; host: RegExp }> = [
   { network: "LinkedIn", host: /(?:^|\.)linkedin\.com$/i },
@@ -35,8 +35,7 @@ export function findPhone(text: string): string | null {
     const digits = raw.replace(/\D/g, "");
     if (digits.length < 8 || digits.length > 15) continue;
     if (/^(19|20)\d{2}\s*[-–]\s*(19|20)\d{2}$/.test(raw.trim())) continue;
-    const cleaned = raw.trim().replace(/[\s().-]+/g, " ").trim();
-    return raw.trim().startsWith("+") ? `+${cleaned.replace(/^\+\s*/, "")}` : cleaned;
+    return raw.trim().replace(/\s{2,}/g, " ");
   }
   return null;
 }

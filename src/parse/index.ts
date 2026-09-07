@@ -1,7 +1,7 @@
 import { emptyResume, FIELD_PATHS, type Certificate, type Language, type Resume } from "../schema.js";
 import { findEmail, findPhone, findProfiles } from "./contact.js";
 import { parseEducation, parseProjects, parseSkills, parseWork } from "./entries.js";
-import { findLocation } from "./location.js";
+import { findAddressLocation, findLocation } from "./location.js";
 import { splitSections } from "./sections.js";
 import { isBullet, stripBullet, toLines } from "./text.js";
 
@@ -93,7 +93,7 @@ export function assemble(text: string): Omit<Resume, "meta"> {
   resume.basics.name = findName(header);
   resume.basics.label = findLabel(header, resume.basics.name);
 
-  const location = findLocation(header) ?? findLocation(lines.slice(0, 12));
+  const location = findLocation(header) ?? findAddressLocation(header);
   if (location !== null) {
     resume.basics.location.city = location.city;
     resume.basics.location.region = location.region;

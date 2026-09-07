@@ -44,7 +44,7 @@ const US_STATES = new Set([
   "VA", "WA", "WV", "WI", "WY", "DC",
 ]);
 
-const SEGMENT = /\s*(?:\||·|•|—|–)\s*/;
+const SEGMENT = /\s*(?:	|\||·|•|—|–)\s*/;
 const PLACE_WORD = /^[\p{Lu}][\p{L}.'-]*$/u;
 const REJECT = /\d|@|https?:|www\./i;
 
@@ -80,6 +80,25 @@ function classify(pieces: string[]): ParsedLocation | null {
     if (INDIAN_REGIONS.has(last.toLowerCase())) {
       return { city, region: last, countryCode: "IN" };
     }
+  }
+  return null;
+}
+
+const STREET_SUFFIX =
+  /^(?:way|st|street|rd|road|ave|avenue|ln|lane|dr|drive|blvd|boulevard|ct|court|pl|place|marg|nagar|colony|sector|block|floor|apt|suite)\.?$/i;
+
+const ADDRESS =
+  /([\p{Lu}][\p{L}.'-]*(?:\s+[\p{Lu}][\p{L}.'-]*)?),\s*([\p{Lu}]{2})\s+\d{4,6}\b/u;
+
+export function findAddressLocation(lines: string[]): ParsedLocation | null {
+  for (const line of lines) {
+    const match = line.match(ADDRESS);
+    if (match === null) continue;
+    const words = match[1]!.split(/\s+/);
+    const city = words.length === 2 && STREET_SUFFIX.test(words[0]!) ? words[1]! : match[1]!;
+    const region = match[2]!.toUpperCase();
+    if (!US_STATES.has(region)) continue;
+    return { city, region, countryCode: "US" };
   }
   return null;
 }

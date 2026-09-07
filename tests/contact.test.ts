@@ -18,8 +18,11 @@ describe("findPhone", () => {
   it("reads an indian mobile with country code", () => {
     expect(findPhone("Phone: +91 84519 74359")).toBe("+91 84519 74359");
   });
+  it("preserves the formatting as written", () => {
+    expect(findPhone("123-456-7890")).toBe("123-456-7890");
+  });
   it("reads a bracketed us number", () => {
-    expect(findPhone("(415) 555-2671")).toBe("415 555 2671");
+    expect(findPhone("(415) 555-2671")).toBe("(415) 555-2671");
   });
   it("ignores a year range", () => {
     expect(findPhone("Worked 2019 - 2023 at Acme")).toBeNull();

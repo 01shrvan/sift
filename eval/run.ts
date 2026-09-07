@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import { parseDocument } from "../src/parse/document.js";
 import type { Resume } from "../src/schema.js";
@@ -122,15 +122,24 @@ async function main(): Promise<void> {
     return;
   }
   const total = summarise(all);
-  process.stdout.write(
+  const summary =
     `documents      ${files.length} (${ungraded} ungraded)\n` +
-      `fields graded  ${total.graded}\n` +
-      `accuracy       ${pct(total.accuracy)}\n` +
-      `invented       ${total.invented} (${pct(total.inventionRate)} of attempted)\n` +
-      `missed         ${total.missed}\n` +
-      `latency p50    ${p50.toFixed(1)}ms\n` +
-      `latency p99    ${p99.toFixed(1)}ms\n`,
-  );
+    `fields graded  ${total.graded}\n` +
+    `accuracy       ${pct(total.accuracy)}\n` +
+    `invented       ${total.invented} (${pct(total.inventionRate)} of attempted)\n` +
+    `missed         ${total.missed}\n` +
+    `latency p50    ${p50.toFixed(1)}ms\n` +
+    `latency p99    ${p99.toFixed(1)}ms\n`;
+  process.stdout.write(summary);
+
+  const out = join(process.cwd(), "eval", "out");
+  await mkdir(out, { recursive: true });
+  const report =
+    `# sift eval | ${new Date().toISOString()}\n\n` +
+    "```\n" + rows.join("\n") + "\n```\n\n" +
+    "```\n" + summary + "```\n";
+  await writeFile(join(out, "report.md"), report, "utf8");
+  process.stdout.write(`\nreport written to eval/out/report.md\n`);
 }
 
 await main();

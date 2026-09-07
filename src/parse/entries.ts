@@ -32,7 +32,7 @@ export function entryBulletTest(lines: string[]): (line: string) => boolean {
 const CORPORATE_SUFFIX = /^(?:inc|llc|ltd|limited|pvt|private|co|corp|corporation|gmbh|plc|llp|sa|bv|ag)\.?$/i;
 
 const ROLE =
-  /\b(?:engineer|developer|programmer|manager|intern(?:ship)?|analyst|designer|consultant|lead|head|director|architect|scientist|officer|associate|assistant|specialist|administrator|founder|owner|coordinator|executive|technician|researcher|trainee|freelancer?|contractor)\b/i;
+  /\b(?:engineer|developer|programmer|manager|intern(?:ship)?|analyst|designer|consultant|lead|head|director|architect|scientist|officer|associate|assistant|specialist|administrator|founder|owner|coordinator|executive|technician|researcher|trainee|freelancer?|contractor|supervisor|teacher|professor|instructor|tutor|counsell?or|therapist|nurse|physician|accountant|recruiter|strategist|planner|producer|editor|writer|reporter|representative|operator|mechanic|technologist|paralegal|librarian|curator|inspector|investigator|trainer|translator|interpreter|clerk|secretary|receptionist|partner|president|principal|advocate|agent|buyer|controller|estimator|examiner|scheduler|surveyor|tester|underwriter)\b/i;
 
 const STUDY_TYPE =
   /\b(?:b\.?\s?tech|b\.?\s?e\.?|b\.?\s?sc|b\.?\s?com|bca|bba|m\.?\s?tech|m\.?\s?sc|m\.?\s?com|mca|mba|ph\.?\s?d|diploma|bachelors?|masters?|doctorate|hsc|ssc|higher\s+secondary|secondary|class\s+(?:x|xii|10|12))\b/i;
@@ -68,9 +68,11 @@ function blankEducation(): Education {
   };
 }
 
-function parts(line: string): string[] {
+const EDU_SPLIT = /\s*(?:	|—|–|\||·|•|,)\s*|\s+-\s+/;
+
+function parts(line: string, pattern: RegExp = SPLIT): string[] {
   const raw = line
-    .split(SPLIT)
+    .split(pattern)
     .map((p) => p.replace(/^[\s,;:]+|[\s,;:]+$/g, "").trim())
     .filter((p) => p.length > 0);
   const merged: string[] = [];
@@ -170,7 +172,7 @@ function readScore(line: string): string | null {
 }
 
 function assignEducation(entry: Education, line: string): void {
-  for (const piece of parts(line)) {
+  for (const piece of parts(line, EDU_SPLIT)) {
     if (entry.studyType === null && STUDY_TYPE.test(piece)) {
       entry.studyType = piece.match(STUDY_TYPE)![0].trim();
       const area = piece
@@ -212,7 +214,8 @@ export function parseEducation(lines: string[]): Education[] {
       current === null ||
       isEntry ||
       (range !== null && current.startDate !== null) ||
-      (STUDY_TYPE.test(line) && current.studyType !== null);
+      (STUDY_TYPE.test(line) && current.studyType !== null) ||
+      (INSTITUTION.test(line.split("	")[0] ?? line) && current.institution !== null);
     if (startsNew) {
       current = blankEducation();
       entries.push(current);
