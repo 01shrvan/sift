@@ -102,19 +102,34 @@ would break the latency this API is built on.
 ## Pricing
 
 Set against what the incumbents actually charge, read off their pricing pages 2026-09-07:
-Extracta is $120/mo for 1,000 parses, ResumeJSON is $29/mo for 1,000 and $99/mo for 5,000.
+Extracta is $120/mo for 1,000 parses with 50 free, ResumeJSON is $29/mo for 1,000 and $99/mo
+for 5,000 with 25 free.
 
-Marginal cost here is near zero, so the free tier is deliberately generous. Getting tried is
-the whole problem for a listing nobody has heard of.
+| | BASIC | PRO | ULTRA | MEGA |
+|---|---|---|---|---|
+| Plan type | Monthly Subscription | Monthly Subscription | Monthly Subscription | Monthly Subscription |
+| Subscription price | **$0** | **$19** | **$59** | **$179** |
+| Requests quota | **50 / month** | **2,000 / month** | **10,000 / month** | **50,000 / month** |
+| Rapid-free-plans-hard-limit | **50 / month** | leave default | leave default | leave default |
+| Bandwidth platform fee | leave default | leave default | leave default | leave default |
+| Rate limit | **10 / minute** | **60 / minute** | **300 / minute** | **600 / minute** |
+| Require approval | off | off | off | off |
+| Recommended plan | off | **on** | off | off |
+| Toggle | on | on | on | on |
 
-| plan | price | requests | overage |
-|---|---|---|---|
-| Basic | $0 | 100 / month | hard limit |
-| Pro | $19 / month | 2,000 | $0.008 |
-| Ultra | $59 / month | 10,000 | $0.005 |
-| Mega | $179 / month | 50,000 | $0.003 |
+**The hard-limit row is the one that actually binds on the free plan.** RapidAPI defaults every
+row to 500,000, which would make the free tier a product rather than a trial. Both BASIC rows
+have to be 50 or the quota above it means nothing.
 
-Basic is 4x ResumeJSON's 25 free calls. Pro is 2x their volume at a third less money.
+Why a free tier exists at all: 50 parses is enough to evaluate and useless to operate on, and
+RapidAPI requires a credit card even for freemium plans, so a free subscriber is already
+payment-ready. With no reviews and no reputation, nobody pays $19 to find out whether an
+unknown parser handles their CV format. The free tier is the only way anyone finds out it
+works. 50 also matches Extracta and doubles ResumeJSON.
+
+Rate limits are not decoration. This runs on Deno Deploy's free plan, which is a monthly CPU
+budget, so one person running a batch job on the free tier could drain it and take the paying
+customers down with them.
 
 ## What not to claim
 
