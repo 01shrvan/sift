@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: sift
+  description: >-
+    Resume and CV parsing. Send a PDF or Word file, get JSON Resume back in tens of
+    milliseconds. Deterministic parsing, no model call on the common path, and the response
+    reports which fields could not be found instead of guessing.
+  version: 0.1.0
+servers:
+  - url: https://sift.example.workers.dev
+paths:
+  /v1/health:
+    get:
+      summary: Liveness check
+      operationId: health
+      responses:
+        "200":
+          description: The service is up
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+  /v1/parse:
+    post:
+      summary: Parse a resume into JSON Resume
+      operationId: parseResume
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: A PDF or DOCX resume, up to 10MB
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                  description: Plain resume text, when the caller has already extracted it
+      responses:
+        "200":
+          description: The parsed resume
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Resume"
+        "400":
+          description: The request body was missing or malformed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "413":
+          description: The file exceeds 10MB
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: The document could not be read
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+    Profile:
+      type: object
+      properties:
+        network: { type: string }
+        username: { type: string, nullable: true }
+        url: { type: string }
+    Location:
+      type: object
+      properties:
+        address: { type: string, nullable: true }
+        postalCode: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        countryCode: { type: string, nullable: true }
+        region: { type: string, nullable: true }
+    Basics:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        label: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+        summary: { type: string, nullable: true }
+        location: { $ref: "#/components/schemas/Location" }
+        profiles:
+          type: array
+          items: { $ref: "#/components/schemas/Profile" }
+    Work:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        position: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+        startDate: { type: string, nullable: true }
+        endDate: { type: string, nullable: true }
+        summary: { type: string, nullable: true }
+        highlights:
+          type: array
+          items: { type: string }
+    Education:
+      type: object
+      properties:
+        institution: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+        area: { type: string, nullable: true }
+        studyType: { type: string, nullable: true }
+        startDate: { type: string, nullable: true }
+        endDate: { type: string, nullable: true }
+        score: { type: string, nullable: true }
+        courses:
+          type: array
+          items: { type: string }
+    Skill:
+      type: object
+      properties:
+        name: { type: string }
+        level: { type: string, nullable: true }
+        keywords:
+          type: array
+          items: { type: string }
+    Project:
+      type: object
+      properties:
+        name: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+        startDate: { type: string, nullable: true }
+        endDate: { type: string, nullable: true }
+        highlights:
+          type: array
+          items: { type: string }
+    Certificate:
+      type: object
+      properties:
+        name: { type: string }
+        issuer: { type: string, nullable: true }
+        date: { type: string, nullable: true }
+        url: { type: string, nullable: true }
+    Language:
+      type: object
+      properties:
+        language: { type: string }
+        fluency: { type: string, nullable: true }
+    Coverage:
+      type: object
+      description: Which fields were found and which the parser could not find
+      properties:
+        found:
+          type: array
+          items: { type: string }
+        missing:
+          type: array
+          items: { type: string }
+    Meta:
+      type: object
+      properties:
+        source:
+          type: string
+          enum: [pdf, docx, text]
+        pages: { type: integer }
+        characters: { type: integer }
+        usedFallback: { type: boolean }
+        durationMs: { type: number }
+        coverage: { $ref: "#/components/schemas/Coverage" }
+    Resume:
+      type: object
+      properties:
+        basics: { $ref: "#/components/schemas/Basics" }
+        work:
+          type: array
+          items: { $ref: "#/components/schemas/Work" }
+        education:
+          type: array
+          items: { $ref: "#/components/schemas/Education" }
+        skills:
+          type: array
+          items: { $ref: "#/components/schemas/Skill" }
+        projects:
+          type: array
+          items: { $ref: "#/components/schemas/Project" }
+        certificates:
+          type: array
+          items: { $ref: "#/components/schemas/Certificate" }
+        languages:
+          type: array
+          items: { $ref: "#/components/schemas/Language" }
+        meta: { $ref: "#/components/schemas/Meta" }

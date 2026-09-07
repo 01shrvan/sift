@@ -1,5 +1,5 @@
-import { unzip } from "unzipit";
 import type { Extracted } from "./pdf.js";
+import { readZipEntry } from "./zip.js";
 
 const PARAGRAPH = /<w:p[ >][\s\S]*?<\/w:p>/g;
 const NODE = /<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>|<w:(?:br|cr)\s*\/>|<w:tab\s*\/>/g;
@@ -34,9 +34,8 @@ export function documentXmlToText(xml: string): string {
 }
 
 export async function extractDocx(bytes: Uint8Array): Promise<Extracted> {
-  const { entries } = await unzip(bytes.slice().buffer as ArrayBuffer);
-  const entry = entries["word/document.xml"];
-  if (entry === undefined) throw new Error("not a docx: word/document.xml is missing");
-  const xml = await entry.text();
+  const entry = await readZipEntry(bytes, "word/document.xml");
+  if (entry === null) throw new Error("not a docx: word/document.xml is missing");
+  const xml = new TextDecoder().decode(entry);
   return { text: documentXmlToText(xml), pages: 1 };
 }
