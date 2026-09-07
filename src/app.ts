@@ -86,6 +86,7 @@ app.post("/v1/parse", async (c) => {
     }
 
     c.header("x-response-time", `${(performance.now() - started).toFixed(2)}ms`);
+    c.header("x-parse-time", `${resume.meta.durationMs}ms`);
     return c.json(resume);
   } catch (error) {
     const message = error instanceof Error ? error.message : "could not read the document";
